@@ -13,6 +13,7 @@ TOKEN = os.environ.get('DISCORD_TOKEN')
 intents = discord.Intents.all()
 bot = Bot(command_prefix='!', help_command=None, intents=intents)
 delta = datetime.timedelta(minutes=30)
+print(delta)
 cache = {}
 
 async def send_hello_msg(cache: dict, message, delta: datetime.timedelta, hello_msg: str):
@@ -28,7 +29,7 @@ async def send_hello_msg(cache: dict, message, delta: datetime.timedelta, hello_
             await message.reply(hello_msg, mention_author=False)
     else:
         await message.reply(hello_msg, mention_author=False)
-    cache[message.author.name]["date_last_message"] = message.created_at
+        cache[message.author.name]["date_last_message"] = message.created_at
 
 
 @bot.event
@@ -49,6 +50,8 @@ async def on_message(message):
         await send_hello_msg(cache=cache, message=message, delta=delta, hello_msg="Paşam seni burda görmek ne güzel :)")
     if message.author.name == "Zahid_Unity1":
         await send_hello_msg(cache=cache, message=message, delta=delta, hello_msg="Agam beni geliştirmeyi ihmal etme :)")
+    if message.author.name == "süleyman mercan":
+        await send_hello_msg(cache=cache, message=message, delta=delta, hello_msg="Süleyman aga botunu geliştirmeye devam ediyor musun :)")
     # get the message content
     msg = message.content.lower()
     # reply to the ping message
