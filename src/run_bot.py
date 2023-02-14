@@ -29,7 +29,7 @@ async def on_message(message):
 @app.get("/")
 def main():
     return "The bot is alive!"
-    
+
 # run the bot as a FastAPI async function
 @app.on_event("startup")
 async def run():
