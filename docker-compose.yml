@@ -1,0 +1,14 @@
+version: "3.9"
+
+services:
+
+  discordbot:
+    container_name: discordbot
+    build: . 
+    volumes:
+       - .:/discord_home
+    ports:
+      - 8443:8443
+    stdin_open: true
+    tty: true
+    restart: on-failure

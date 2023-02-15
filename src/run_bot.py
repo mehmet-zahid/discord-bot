@@ -27,6 +27,7 @@ async def send_hello_msg(cache: dict, message, delta: datetime.timedelta, hello_
         print(fark)
         if fark > delta:
             await message.reply(hello_msg, mention_author=False)
+            cache[message.author.name]["date_last_message"] = message.created_at
     else:
         await message.reply(hello_msg, mention_author=False)
         cache[message.author.name]["date_last_message"] = message.created_at
@@ -52,6 +53,7 @@ async def on_message(message):
         await send_hello_msg(cache=cache, message=message, delta=delta, hello_msg="Agam beni geliştirmeyi ihmal etme :)")
     if message.author.name == "süleyman mercan":
         await send_hello_msg(cache=cache, message=message, delta=delta, hello_msg="Süleyman aga botunu geliştirmeye devam ediyor musun :)")
+    print(cache)
     # get the message content
     msg = message.content.lower()
     # reply to the ping message
