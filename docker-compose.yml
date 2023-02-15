@@ -4,7 +4,11 @@ services:
 
   discordbot:
     container_name: discordbot
-    build: . 
+    build:
+      context: ./src
+      dockerfile: Dockerfile
+    env_file:
+      - .env
     volumes:
        - .:/discord_home
     ports:
