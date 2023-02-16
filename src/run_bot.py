@@ -6,6 +6,9 @@ from discord.ext.commands import Bot
 from fastapi import FastAPI
 from datetime import timedelta, datetime
 from pray import fetch_pray_info, correct_tr, get_pray_info
+import pytz
+
+tz = pytz.timezone("Turkey")
 
 app = FastAPI()
 

@@ -4,6 +4,9 @@ from typing import Union
 from datetime import datetime, time, date, timedelta
 import json
 import os
+import pytz
+
+tz = pytz.timezone("Turkey")
 
 tr_table = str.maketrans("ğĞıİöÖüÜşŞçÇ", "gGiIoOuUsScC")
 
