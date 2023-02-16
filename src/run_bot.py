@@ -5,6 +5,8 @@ import os
 from discord.ext.commands import Bot
 from fastapi import FastAPI
 import datetime
+from pray import fetch_pray_info, correct_tr
+
 app = FastAPI()
 
 load_dotenv()
@@ -56,14 +58,41 @@ async def on_message(message):
     print(cache)
     # get the message content
     msg = message.content.lower()
+    print(msg)
+    print(msg.split())
     # reply to the ping message
-    if "!ping" in msg:
+    if "/ping" in msg:
         await message.reply(message.author, mention_author=False)
 
     if "/ask" in msg:
         await message.reply("this will be implemented...", mention_author=False)
-    
 
+    if "/freetime" in msg:
+        cont = msg.split()
+        duration = cont[2]
+        current_time = datetime.datetime.now()
+        print("splitted message content:", cont)
+        print("duration:", duration)
+        
+        try:
+            number: int = int(cont[1])
+            print("number:", number)
+        except Exception as e:
+            print(e)
+            await message.reply("Sory! Unexpected behaviour occured in server side. Contact the developer",
+             mention_author=False)
+
+    if "/namaz" in msg:
+        cont = msg.split()
+        if len(cont) == 2:
+            city = correct_tr(cont[1]).lower()
+            print(city)
+            response = fetch_pray_info(city=city)
+            await message.reply(response, mention_author=False)
+        else:
+            await message.reply("Please provie only city name after the command!", mention_author=False)
+
+  
 @app.get("/")
 def main():
     return "The bot is alive!"
