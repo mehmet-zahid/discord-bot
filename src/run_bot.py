@@ -4,8 +4,8 @@ from dotenv import load_dotenv
 import os
 from discord.ext.commands import Bot
 from fastapi import FastAPI
-import datetime
-from pray import fetch_pray_info, correct_tr
+from datetime import timedelta, datetime
+from pray import fetch_pray_info, correct_tr, get_pray_info
 
 app = FastAPI()
 
@@ -14,11 +14,11 @@ TOKEN = os.environ.get('DISCORD_TOKEN')
 
 intents = discord.Intents.all()
 bot = Bot(command_prefix='!', help_command=None, intents=intents)
-delta = datetime.timedelta(minutes=30)
+delta = timedelta(minutes=30)
 print(delta)
 cache = {}
 
-async def send_hello_msg(cache: dict, message, delta: datetime.timedelta, hello_msg: str):
+async def send_hello_msg(cache: dict, message, delta: timedelta, hello_msg: str):
     try:
         member_name = cache[message.author.name]
     except KeyError:
@@ -69,8 +69,10 @@ async def on_message(message):
         await message.reply("this will be implemented...", mention_author=False)
 
     if "/freetime" in msg:
-        duration = cont[2]
-        current_time = datetime.datetime.now()
+        if len(cont) == 3:
+            duration = cont[2]
+            time_after = cont[1]
+            current_time = datetime.now()
         print("splitted message content:", cont)
         print("duration:", duration)
         
@@ -86,10 +88,24 @@ async def on_message(message):
         if len(cont) == 2:
             city = correct_tr(cont[1]).lower()
             print(city)
-            response = fetch_pray_info(city=city)
-            await message.reply(response, mention_author=False)
+            try:
+                response = fetch_pray_info(city=city)
+                await message.reply(response, mention_author=False)
+            except Exception as e:
+                await message.reply(e, mention_author=False)
         else:
-            await message.reply("Please provie only city name after the command!", mention_author=False)
+            await message.reply("Please type city name only, after the command!", mention_author=False)
+
+    if "/vakit" in msg:
+        if len(cont) == 2:
+            city = correct_tr(cont[1]).lower()
+            try:
+                response = get_pray_info(fetch_pray_info(city=city))
+                await message.reply(response, mention_author=False)
+            except Exception as e:
+                await message.reply(e, mention_author=False)
+        else:
+            await message.reply("Please provide city name only, after the command!", mention_author=False)
 
   
 @app.get("/")
