@@ -58,17 +58,17 @@ async def on_message(message):
     print(cache)
     # get the message content
     msg = message.content.lower()
+    cont = msg.split()
     print(msg)
     print(msg.split())
     # reply to the ping message
-    if "/ping" in msg:
+    if "/ping" in msg and len(msg) == 5:
         await message.reply(message.author, mention_author=False)
 
     if "/ask" in msg:
         await message.reply("this will be implemented...", mention_author=False)
 
     if "/freetime" in msg:
-        cont = msg.split()
         duration = cont[2]
         current_time = datetime.datetime.now()
         print("splitted message content:", cont)
@@ -83,7 +83,6 @@ async def on_message(message):
              mention_author=False)
 
     if "/namaz" in msg:
-        cont = msg.split()
         if len(cont) == 2:
             city = correct_tr(cont[1]).lower()
             print(city)
