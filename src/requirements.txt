@@ -1,5 +1,6 @@
 discord.py
 requests
+pytz
 fastapi
 uvicorn[standard]
 python-dotenv
