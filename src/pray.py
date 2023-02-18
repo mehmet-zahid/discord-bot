@@ -4,9 +4,7 @@ from typing import Union
 from datetime import datetime, time, date, timedelta
 import json
 import os
-import pytz
 
-tz = pytz.timezone("Turkey")
 
 tr_table = str.maketrans("ğĞıİöÖüÜşŞçÇ", "gGiIoOuUsScC")
 
@@ -33,7 +31,7 @@ host = "https://namaz-vakti.vercel.app"
 endpoint = "/api/timesFromPlace?country=Turkey&region={0}&city={0}&date={1}&days=1&timezoneOffset=180"
 
 
-def fetch_pray_info(city, pray_time_tag=None):
+def fetch_pray_info(city: str):
     vakts = {"imsak": None,
              "gunes": None,
              "ogle": None,
@@ -74,11 +72,14 @@ def calc_remaining_time(city):
     
     # current_pray_time_tag 
 
-def convert_to_datetime(time_str):
-    # time_str = '05:31'
+def convert_to_datetime(time_str, day_offset=None):
+    if day_offset is None:
+        dt = date.today()
+    else:
+        dt = date.today() + timedelta(days=day_offset)
     time_obj = datetime.strptime(time_str, '%H:%M').time()
-    datetime_obj = datetime.combine(datetime.today(), time_obj)
-
+    datetime_obj = datetime.combine(dt, time_obj)
+    
     return datetime_obj
 
 
@@ -90,39 +91,114 @@ namazlar = {"imsak" :  "06:26",
             "yatsi" :  "20:06"}
 
 
-def get_pray_info(vakts: dict) -> dict:
-    remainings = [] 
-    current_time = datetime.now()
-    tag_map = {0: "imsak",
-               1: "gunes",
-               2: "ogle",
-               3: "ikindi",
-               4: "aksam",
-               5: "yatsi"}
-    for k, v in vakts.items():
-        rm_timedelta = current_time - convert_to_datetime(v)
-        #if rm_timedelta < timedelta():
-        #    continue
-        remainings.append(rm_timedelta)
-    rm_map = {}
-    
-    for i, tdelta in enumerate(remainings):
-        if tdelta < timedelta():
-            continue
-        rm_map[i] = tdelta
+def get_pray_info(vakts: dict, as_str=False, time_offset=None) -> dict:
+    if time_offset is None:
+        time_offset = datetime.now()
 
-    values = rm_map.values()
-    min_value = min(values)
-    
-    for k, v in rm_map.items():
-        if v == min_value:
-            key = k
-
-    return {"current_time": current_time.strftime('%H:%M'),
-            "current_pray_time_tag": tag_map[key] ,
-            "remaining_time_to_next_pray": str((convert_to_datetime(vakts[tag_map[key+1]]) - current_time)),
-            "next_pray_time_tag": tag_map[key+1],
+    response = {"Date": str(date.today()) if as_str else date.today(),
+                "CurrentTime": time_offset.strftime('%H:%M') if as_str else time_offset,
+                "CurrentPrayer": None ,
+                "RemainingTimeToNextPray": None,
+                "NextPrayerTime": None,
             }
+    if convert_to_datetime(vakts['imsak']) <= time_offset < convert_to_datetime(vakts['gunes']):
+        response["CurrentPrayer"] = "sabah namaz vakti"
+        response["NextPrayerTime"] = "ogle"
+    elif convert_to_datetime(vakts['gunes']) <= time_offset < convert_to_datetime(vakts['ogle']):
+        response["CurrentPrayer"] = "kusluk vakti"
+        response["NextPrayerTime"] = "ogle"
+    elif convert_to_datetime(vakts['ogle']) <= time_offset < convert_to_datetime(vakts['ikindi']):
+        response["CurrentPrayer"] = "ogle namaz vakti"
+        response["NextPrayerTime"] = "ikindi"
+    elif convert_to_datetime(vakts['ikindi']) <= time_offset < convert_to_datetime(vakts['aksam']):
+        response["CurrentPrayer"] = "ikindi namaz vakti"
+        response["NextPrayerTime"] = "aksam"
+    elif convert_to_datetime(vakts['aksam']) <= time_offset < convert_to_datetime(vakts['yatsi']):
+        response["CurrentPrayer"] = "aksam namaz vakti"
+        response["NextPrayerTime"] = "yatsi"
+    elif convert_to_datetime(vakts['yatsi']) <= time_offset < convert_to_datetime(vakts['imsak'], day_offset=1):
+        response["CurrentPrayer"] = "yatsi namaz vakti"
+        response["NextPrayerTime"] = "imsak"
+    elif convert_to_datetime(vakts['yatsi'], day_offset=-1) <= time_offset < convert_to_datetime(vakts['imsak']):
+        response["CurrentPrayer"] = "yatsi namaz vakti"
+        response["NextPrayerTime"] = "imsak"
+    else:
+        print("Error")
+
+    time_left = convert_to_datetime(vakts[response["NextPrayerTime"]]) - time_offset
+    str_time_left = str(time_left)
+    response["RemainingTimeToNextPray"] = str_time_left if as_str else time_left
+
+    
+    return response
+
+def freetime_info(city: str, time_after: int, duration: tuple[int, int]):
+
+    meeting_duration = timedelta(hours=duration[0], minutes=duration[1])
+    meeting_time =datetime.now() + timedelta(hours=time_after)
+    
+    response = get_pray_info(fetch_pray_info(city=city), as_str=False, time_offset=meeting_time)
+    recommend = []
+    if response["CurrentPrayer"] == "ikindi":
+        recommend.append("you will be ikindi pray time at your meeting start time")
+        recommend.append(f"Time Left to aksam pray time after the end of the meeting --> {response['RemainingTimeToNextPray']}")
+        if response["RemainingTimeToNextPray"] < timedelta(minutes=45):
+            recommend.append("if you perform the meeting at that time, you will be in the kerahat time after the end of the meeting!")
+            recom_meet_dur = meeting_duration - response["RemainingTimeToNextPray"]
+            recommend.append(f"Recommended meeting duration --> {recom_meet_dur}")
+    elif response["RemainingTimeToNextPray"] < timedelta(minutes=30):
+        recommend.append("Take care of remaining time to next pray ! less than 30 minutes!")
+
+    else:
+        recommend.append(f"Good Time for meeting {str(meeting_time)}")
+
+
+    return {"MeetingTime": meeting_time.strftime('%H:%M'),
+            "TimeOffset": response["CurrentTime"].strftime('%H:%M'),
+            "PrayerTimeTagOnMeetingTime": response["CurrentPrayer"],
+            "RemainingTimeToNextPray": str(response["RemainingTimeToNextPray"]),
+            "NextPrayerTime": response["NextPrayerTime"],
+            "Recommendations": recommend}
+
+
+#print(convert_to_datetime("06:26"))      
+#print(convert_to_datetime("06:26", next_day=True))
+#print(datetime.now() + timedelta(hours=6, minutes=26))
+#print(convert_to_datetime(namazlar['yatsi']))
+
+
+#print(get_pray_info(namazlar))
+
+current_time = datetime.now()
+print(current_time)
+if convert_to_datetime(namazlar['imsak']) <= current_time < convert_to_datetime(namazlar['gunes']):
+    print({"CurrentPrayer":"sabah namaz vakti",
+           "NextPrayerTime":"ogle"})
+elif convert_to_datetime(namazlar['gunes']) <= current_time < convert_to_datetime(namazlar['ogle']):
+    print({"CurrentPrayer":"kusluk vakti",
+           "NextPrayerTime":"ogle"})
+elif convert_to_datetime(namazlar['ogle']) <= current_time < convert_to_datetime(namazlar['ikindi']):
+    print({"CurrentPrayer":"ogle namaz vakti",
+           "NextPrayerTime":"ikindi"})
+elif convert_to_datetime(namazlar['ikindi']) <= current_time < convert_to_datetime(namazlar['aksam']):
+    print({"CurrentPrayer":"ikindi namaz vakti",
+           "NextPrayerTime":"aksam"})
+elif convert_to_datetime(namazlar['aksam']) <= current_time < convert_to_datetime(namazlar['yatsi']):
+    print({"CurrentPrayer":"aksam namaz vakti",
+           "NextPrayerTime":"yatsi"})
+elif convert_to_datetime(namazlar['yatsi']) <= current_time < convert_to_datetime(namazlar['imsak'], day_offset=1):
+    print({"CurrentPrayer":"yatsi namaz vakti",
+           "NextPrayerTime":"imsak"})
+elif convert_to_datetime(namazlar['yatsi'], day_offset=-1) <= current_time < convert_to_datetime(namazlar['imsak']):
+    print({"CurrentPrayer":"yatsi namaz vakti",
+           "NextPrayerTime":"imsak"})
+else:
+    print("errror")
+
+#print(convert_to_datetime(namazlar['imsak'], next_day=True) > current_time)
+#print(convert_to_datetime(namazlar['yatsi']) < current_time)
+
+#print(convert_to_datetime("02:00", day_offset=-1))
 
 
 

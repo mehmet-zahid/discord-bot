@@ -5,10 +5,8 @@ import os
 from discord.ext.commands import Bot
 from fastapi import FastAPI
 from datetime import timedelta, datetime
-from pray import fetch_pray_info, correct_tr, get_pray_info
-import pytz
+from pray import fetch_pray_info, correct_tr, get_pray_info, freetime_info
 
-tz = pytz.timezone("Turkey")
 
 app = FastAPI()
 
@@ -72,21 +70,38 @@ async def on_message(message):
         await message.reply("this will be implemented...", mention_author=False)
 
     if "/freetime" in msg:
-        if len(cont) == 3:
-            duration = cont[2]
-            time_after = cont[1]
-            current_time = datetime.now()
-        print("splitted message content:", cont)
-        print("duration:", duration)
-        
-        try:
-            number: int = int(cont[1])
-            print("number:", number)
-        except Exception as e:
-            print(e)
-            await message.reply("Sory! Unexpected behaviour occured in server side. Contact the developer",
-             mention_author=False)
+        if len(cont) == 4:
+            city = correct_tr(cont[1]).lower()
+            try:
+                time_after = int(cont[2])
+                if time_after > 10:
+                    await message.reply(f"{time_after} is too long time_after value! ", mention_author=False)
+                    return
+            except Exception as e:
+                print(e)
+                await message.reply("'time_after' must be like int type! ", mention_author=False)
+                return
+            try:
+                duration = float(cont[3])
+                duration = str(duration).split('.')
+                hour = int(duration[0])
+                min = int(duration[1]) if duration[1] else 0 
+                if hour > 5 or min > 59:
+                    await message.reply("wrong value for hour(must be 0-6) or minute(must be 0-60) ! ",
+                                        mention_author=False)
+                    return
+            except Exception as e:
+                print(e)
+                await message.reply("'duration parameter must be like a float type! ", mention_author=False)
+                return
+            try:
+                res = freetime_info(city, time_after, duration=(hour, min))
+            except Exception as e:
+                print(e)
+                return
+            await message.reply(res,mention_author=False)
 
+    
     if "/namaz" in msg:
         if len(cont) == 2:
             city = correct_tr(cont[1]).lower()
