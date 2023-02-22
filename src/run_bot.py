@@ -6,18 +6,28 @@ from discord.ext.commands import Bot
 from fastapi import FastAPI
 from datetime import timedelta, datetime
 from pray import fetch_pray_info, correct_tr, get_pray_info, freetime_info
+import motor.motor_asyncio
 
 
 app = FastAPI()
 
 load_dotenv()
+
 TOKEN = os.environ.get('DISCORD_TOKEN')
+
+client = motor.motor_asyncio.AsyncIOMotorClient(os.environ.get('MONGODB_PWD'))
 
 intents = discord.Intents.all()
 bot = Bot(command_prefix='!', help_command=None, intents=intents)
 delta = timedelta(minutes=30)
-print(delta)
+
 cache = {}
+
+DB_NAME = "discord"
+COLLECTION_NAME = "beyaz_klavye"
+TEST_COLLECTION_NAME = "test"
+db = client[DB_NAME]
+collection = db[COLLECTION_NAME]
 
 async def send_hello_msg(cache: dict, message, delta: timedelta, hello_msg: str):
     try:
@@ -38,28 +48,41 @@ async def send_hello_msg(cache: dict, message, delta: timedelta, hello_msg: str)
 
 @bot.event
 async def on_message(message):
-    global date_last_message
     global cache
-    print(message.author.name)
-    print(message.created_at, type(message.created_at))
+    print(message.created_at)
+    msg = message.content.lower()
+    cont = msg.split()
+    doc = {"Author": message.author.name,
+           "Message": msg,
+           "CreatedTime": message.created_at}
+
+    result = await collection.insert_one(doc)
+    print('result %s' % repr(result.inserted_id))
+    
     # Do not reply to self
+    print(message.author.name)
+    print(message.guild)
     if message.author == bot.user:
         return
     # Do not reply to any other bot
+    print(message.author.bot)
     if message.author.bot:
-        return 
+        return
+    if message.author.name == "by.NeOn-B1-66-er":
+        await send_hello_msg(cache=cache, message=message, delta=delta, hello_msg="Hoşgeldiniz Ahmet Bey")
     if message.author.name == "Muhammed_Samil_Albayrak":
-        await send_hello_msg(cache=cache, message=message, delta=delta, hello_msg="Agam Hoşgeldin :)")
+        await send_hello_msg(cache=cache, message=message, delta=delta, hello_msg="Şamil Bey Hoşgeldiniz")
     if message.author.name == "mutex":
-        await send_hello_msg(cache=cache, message=message, delta=delta, hello_msg="Paşam seni burda görmek ne güzel :)")
-    if message.author.name == "Zahid_Unity1":
-        await send_hello_msg(cache=cache, message=message, delta=delta, hello_msg="Agam beni geliştirmeyi ihmal etme :)")
+        await send_hello_msg(cache=cache, message=message, delta=delta, hello_msg="Hoşgeldiniz Mutex")
+    if message.author.name == "Mehmet Zahid IŞIK":
+        #await message.reply("Your messages will be deleted Mehmet Zahid, Sorry :)", mention_author=False)
+        await send_hello_msg(cache=cache, message=message, delta=delta, hello_msg="Hello Mehmet Zahid")
+        #await message.delete(delay=3.2)
     if message.author.name == "süleyman mercan":
-        await send_hello_msg(cache=cache, message=message, delta=delta, hello_msg="Süleyman aga botunu geliştirmeye devam ediyor musun :)")
+        await send_hello_msg(cache=cache, message=message, delta=delta, hello_msg="Hoşgeldin Süleyman")
     print(cache)
     # get the message content
-    msg = message.content.lower()
-    cont = msg.split()
+    
     print(msg)
     print(msg.split())
     # reply to the ping message
@@ -118,14 +141,21 @@ async def on_message(message):
         if len(cont) == 2:
             city = correct_tr(cont[1]).lower()
             try:
-                response = get_pray_info(fetch_pray_info(city=city))
+                response = get_pray_info(fetch_pray_info(city=city), as_str=True)
                 await message.reply(response, mention_author=False)
             except Exception as e:
                 await message.reply(e, mention_author=False)
         else:
             await message.reply("Please provide city name only, after the command!", mention_author=False)
 
-  
+#@bot.command(pass_context = True)
+#async def say(ctx, *, mg = None):
+#    await bot.delete_message(ctx.message)
+
+@bot.event
+async def on_member_join(member):
+    await message.reply(f"Hoşgeldin {member.name}")
+    
 @app.get("/")
 def main():
     return "The bot is alive!"

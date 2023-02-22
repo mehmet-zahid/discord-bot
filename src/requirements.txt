@@ -2,5 +2,7 @@ discord.py
 requests
 tzdata
 fastapi
+pymongo
+motor
 uvicorn[standard]
 python-dotenv

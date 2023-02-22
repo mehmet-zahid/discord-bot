@@ -28,30 +28,64 @@ else:
         json.dump(turkey_cities, f)
 
 host = "https://namaz-vakti.vercel.app"
-endpoint = "/api/timesFromPlace?country=Turkey&region={0}&city={0}&date={1}&days=1&timezoneOffset=180"
+endpoint = "/api/timesFromPlace?country=Turkey&region={0}&city={0}&date={1}&days=3&timezoneOffset=180"
 
 
 def fetch_pray_info(city: str):
-    vakts = {"imsak": None,
-             "gunes": None,
-             "ogle": None,
-             "ikindi": None,
-             "aksam": None,
-             "yatsi": None}
-       
-    date_string = date.today().strftime("%Y-%m-%d")
-    url = host + endpoint.format(turkey_cities.get(city), date_string)
+    yesterday = (date.today() + timedelta(days=-1)).strftime("%Y-%m-%d")
+    today = date.today().strftime("%Y-%m-%d")
+    tomorrow = (date.today() + timedelta(days=1)).strftime("%Y-%m-%d")
+
+    vakts = {"yesterday": {"date": yesterday,
+                           "prays": {"imsak": None,
+                                     "gunes": None,
+                                     "ogle": None,
+                                     "ikindi": None,
+                                     "aksam": None,
+                                     "yatsi": None
+                                     }
+                          },
+             "today": {"date": today,
+                       "prays": {"imsak": None,
+                                 "gunes": None,
+                                 "ogle": None,
+                                 "ikindi": None,
+                                 "aksam": None,
+                                 "yatsi": None
+                                }
+                       },
+             "tomorrow": {"date": tomorrow,
+                          "prays": {"imsak": None,
+                                    "gunes": None,
+                                    "ogle": None,
+                                    "ikindi": None,
+                                    "aksam": None,
+                                    "yatsi": None
+                                    }
+                          }
+            }
+    
+    url = host + endpoint.format(turkey_cities.get(city), vakts['yesterday']['date'])
     print(url)
     try:
-        response = requests.get(url)
-        data = response.json()
+        response = requests.get(url).json()
+        print(response)
     except Exception as e:
         print(e)
         raise "Cannot fetch data from api server ..."
     
-    for i, vakt in enumerate(vakts.keys()):
-        vakts[vakt] = data['times'][date_string][i]
-    print(vakts)    
+    date_keys = {yesterday: 'yesterday', today: 'today', tomorrow: 'tomorrow'}
+
+    # Fill in the prayer times for each day
+    for day, times in response['times'].items():
+        if day in date_keys:
+            key = date_keys[day]
+            vakts[key]['prays']['imsak'] = times[0]
+            vakts[key]['prays']['gunes'] = times[1]
+            vakts[key]['prays']['ogle'] = times[2]
+            vakts[key]['prays']['ikindi'] = times[3]
+            vakts[key]['prays']['aksam'] = times[4]
+            vakts[key]['prays']['yatsi'] = times[5] 
     return vakts
 
 def url_encode(data: dict):
@@ -72,8 +106,10 @@ def calc_remaining_time(city):
     
     # current_pray_time_tag 
 
-def convert_to_datetime(time_str, day_offset=None):
-    if day_offset is None:
+def convert_to_datetime(time_str, day_offset=None, date_string=None):
+    if date_string:
+        dt = datetime.strptime(date_string, '%Y-%m-%d')
+    elif day_offset is None:
         dt = date.today()
     else:
         dt = date.today() + timedelta(days=day_offset)
@@ -94,6 +130,17 @@ namazlar = {"imsak" :  "06:26",
 def get_pray_info(vakts: dict, as_str=False, time_offset=None) -> dict:
     if time_offset is None:
         time_offset = datetime.now()
+    buff = vakts.copy()
+    try:
+        for k, v in vakts.items():
+            print(v)
+            for x, y in v.items():
+                if x == 'prays':
+                    for a, b in y.items():
+                        buff[k][x][a] = convert_to_datetime(b, date_string=vakts[k]['date'])
+    except Exception as e:
+        print(e)
+    print(buff)
 
     response = {"Date": str(date.today()) if as_str else date.today(),
                 "CurrentTime": time_offset.strftime('%H:%M') if as_str else time_offset,
@@ -101,33 +148,46 @@ def get_pray_info(vakts: dict, as_str=False, time_offset=None) -> dict:
                 "RemainingTimeToNextPray": None,
                 "NextPrayerTime": None,
             }
-    if convert_to_datetime(vakts['imsak']) <= time_offset < convert_to_datetime(vakts['gunes']):
+    if buff['today']['prays']['imsak'] <= time_offset < buff['today']['prays']['gunes']:
         response["CurrentPrayer"] = "sabah namaz vakti"
         response["NextPrayerTime"] = "ogle"
-    elif convert_to_datetime(vakts['gunes']) <= time_offset < convert_to_datetime(vakts['ogle']):
+        response["RemainingTimeToNextPray"] = buff['today']['prays']['ogle'] - time_offset
+
+    elif buff['today']['prays']['gunes'] <= time_offset < buff['today']['prays']['ogle']:
         response["CurrentPrayer"] = "kusluk vakti"
         response["NextPrayerTime"] = "ogle"
-    elif convert_to_datetime(vakts['ogle']) <= time_offset < convert_to_datetime(vakts['ikindi']):
+        response["RemainingTimeToNextPray"] = buff['today']['prays']['ogle'] - time_offset
+
+    elif buff['today']['prays']['ogle'] <= time_offset < buff['today']['prays']['ikindi']:
         response["CurrentPrayer"] = "ogle namaz vakti"
         response["NextPrayerTime"] = "ikindi"
-    elif convert_to_datetime(vakts['ikindi']) <= time_offset < convert_to_datetime(vakts['aksam']):
+        response["RemainingTimeToNextPray"] = buff['today']['prays']['ikindi'] - time_offset
+
+    elif buff['today']['prays']['ikindi'] <= time_offset < buff['today']['prays']['aksam']:
         response["CurrentPrayer"] = "ikindi namaz vakti"
         response["NextPrayerTime"] = "aksam"
-    elif convert_to_datetime(vakts['aksam']) <= time_offset < convert_to_datetime(vakts['yatsi']):
+        response["RemainingTimeToNextPray"] = buff['today']['prays']['aksam'] - time_offset
+
+    elif buff['today']['prays']['aksam'] <= time_offset < buff['today']['prays']['yatsi']:
         response["CurrentPrayer"] = "aksam namaz vakti"
         response["NextPrayerTime"] = "yatsi"
-    elif convert_to_datetime(vakts['yatsi']) <= time_offset < convert_to_datetime(vakts['imsak'], day_offset=1):
+        response["RemainingTimeToNextPray"] = buff['today']['prays']['yatsi'] - time_offset
+
+    elif buff['today']['prays']['yatsi'] <= time_offset < buff['tomorrow']['prays']['imsak']:
         response["CurrentPrayer"] = "yatsi namaz vakti"
         response["NextPrayerTime"] = "imsak"
-    elif convert_to_datetime(vakts['yatsi'], day_offset=-1) <= time_offset < convert_to_datetime(vakts['imsak']):
+        response["RemainingTimeToNextPray"] = buff['tomorrow']['prays']['imsak'] - time_offset
+
+    elif buff['yesterday']['prays']['yatsi'] <= time_offset < buff['today']['prays']['imsak']:
         response["CurrentPrayer"] = "yatsi namaz vakti"
         response["NextPrayerTime"] = "imsak"
+        response["RemainingTimeToNextPray"] = buff['today']['prays']['imsak'] - time_offset
     else:
         print("Error")
-
-    time_left = convert_to_datetime(vakts[response["NextPrayerTime"]]) - time_offset
-    str_time_left = str(time_left)
-    response["RemainingTimeToNextPray"] = str_time_left if as_str else time_left
+    
+    
+    str_time_left = str(response["RemainingTimeToNextPray"])
+    response["RemainingTimeToNextPray"] = str_time_left if as_str else response["RemainingTimeToNextPray"]
 
     
     return response
@@ -154,6 +214,7 @@ def freetime_info(city: str, time_after: int, duration: tuple[int, int]):
 
 
     return {"MeetingTime": meeting_time.strftime('%H:%M'),
+            "MeetingDuration": str(meeting_duration),
             "TimeOffset": response["CurrentTime"].strftime('%H:%M'),
             "PrayerTimeTagOnMeetingTime": response["CurrentPrayer"],
             "RemainingTimeToNextPray": str(response["RemainingTimeToNextPray"]),
@@ -165,40 +226,12 @@ def freetime_info(city: str, time_after: int, duration: tuple[int, int]):
 #print(convert_to_datetime("06:26", next_day=True))
 #print(datetime.now() + timedelta(hours=6, minutes=26))
 #print(convert_to_datetime(namazlar['yatsi']))
-
-
 #print(get_pray_info(namazlar))
-
-current_time = datetime.now()
-print(current_time)
-if convert_to_datetime(namazlar['imsak']) <= current_time < convert_to_datetime(namazlar['gunes']):
-    print({"CurrentPrayer":"sabah namaz vakti",
-           "NextPrayerTime":"ogle"})
-elif convert_to_datetime(namazlar['gunes']) <= current_time < convert_to_datetime(namazlar['ogle']):
-    print({"CurrentPrayer":"kusluk vakti",
-           "NextPrayerTime":"ogle"})
-elif convert_to_datetime(namazlar['ogle']) <= current_time < convert_to_datetime(namazlar['ikindi']):
-    print({"CurrentPrayer":"ogle namaz vakti",
-           "NextPrayerTime":"ikindi"})
-elif convert_to_datetime(namazlar['ikindi']) <= current_time < convert_to_datetime(namazlar['aksam']):
-    print({"CurrentPrayer":"ikindi namaz vakti",
-           "NextPrayerTime":"aksam"})
-elif convert_to_datetime(namazlar['aksam']) <= current_time < convert_to_datetime(namazlar['yatsi']):
-    print({"CurrentPrayer":"aksam namaz vakti",
-           "NextPrayerTime":"yatsi"})
-elif convert_to_datetime(namazlar['yatsi']) <= current_time < convert_to_datetime(namazlar['imsak'], day_offset=1):
-    print({"CurrentPrayer":"yatsi namaz vakti",
-           "NextPrayerTime":"imsak"})
-elif convert_to_datetime(namazlar['yatsi'], day_offset=-1) <= current_time < convert_to_datetime(namazlar['imsak']):
-    print({"CurrentPrayer":"yatsi namaz vakti",
-           "NextPrayerTime":"imsak"})
-else:
-    print("errror")
-
 #print(convert_to_datetime(namazlar['imsak'], next_day=True) > current_time)
 #print(convert_to_datetime(namazlar['yatsi']) < current_time)
-
 #print(convert_to_datetime("02:00", day_offset=-1))
+
+#print(fetch_pray_info("istanbul"))
 
 
 
