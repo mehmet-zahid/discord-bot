@@ -15,7 +15,7 @@ load_dotenv()
 
 TOKEN = os.environ.get('DISCORD_TOKEN')
 
-client = motor.motor_asyncio.AsyncIOMotorClient(os.environ.get('MONGODB_PWD'))
+#client = motor.motor_asyncio.AsyncIOMotorClient(os.environ.get('MONGODB_PWD'))
 
 intents = discord.Intents.all()
 bot = commands.Bot(command_prefix='!', help_command=None, intents=intents)
@@ -23,11 +23,11 @@ delta = timedelta(minutes=30)
 
 cache = {}
 
-DB_NAME = "discord"
-COLLECTION_NAME = "beyaz_klavye"
-TEST_COLLECTION_NAME = "test"
-db = client[DB_NAME]
-collection = db[COLLECTION_NAME]
+#DB_NAME = "discord"
+#COLLECTION_NAME = "beyaz_klavye"
+#TEST_COLLECTION_NAME = "test"
+#db = client[DB_NAME]
+#collection = db[COLLECTION_NAME]
 
 async def send_hello_msg(cache: dict, message, delta: timedelta, hello_msg: str):
     try:
