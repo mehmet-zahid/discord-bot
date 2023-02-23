@@ -2,11 +2,11 @@ import asyncio
 import discord
 from dotenv import load_dotenv
 import os
-from discord.ext.commands import Bot
+from discord.ext import commands
 from fastapi import FastAPI
 from datetime import timedelta, datetime
 from pray import fetch_pray_info, correct_tr, get_pray_info, freetime_info
-import motor.motor_asyncio
+# import motor.motor_asyncio
 
 
 app = FastAPI()
@@ -18,7 +18,7 @@ TOKEN = os.environ.get('DISCORD_TOKEN')
 client = motor.motor_asyncio.AsyncIOMotorClient(os.environ.get('MONGODB_PWD'))
 
 intents = discord.Intents.all()
-bot = Bot(command_prefix='!', help_command=None, intents=intents)
+bot = commands.Bot(command_prefix='!', help_command=None, intents=intents)
 delta = timedelta(minutes=30)
 
 cache = {}
@@ -52,12 +52,12 @@ async def on_message(message):
     print(message.created_at)
     msg = message.content.lower()
     cont = msg.split()
-    doc = {"Author": message.author.name,
-           "Message": msg,
-           "CreatedTime": message.created_at}
+    #doc = {"Author": message.author.name,
+    #       "Message": msg,
+    #       "CreatedTime": message.created_at}
 
-    result = await collection.insert_one(doc)
-    print('result %s' % repr(result.inserted_id))
+    #result = await collection.insert_one(doc)
+    #print('result %s' % repr(result.inserted_id))
     
     # Do not reply to self
     print(message.author.name)
@@ -148,9 +148,7 @@ async def on_message(message):
         else:
             await message.reply("Please provide city name only, after the command!", mention_author=False)
 
-#@bot.command(pass_context = True)
-#async def say(ctx, *, mg = None):
-#    await bot.delete_message(ctx.message)
+
 
 @bot.event
 async def on_member_join(member):

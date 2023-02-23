@@ -7,6 +7,8 @@ services:
     build:
       context: ./src
       dockerfile: Dockerfile
+    environment:
+      - TZ=Turkey
     env_file:
       - .env
     volumes:
