@@ -91,31 +91,55 @@ class RockPaperScissorsView(discord.ui.View):
 
 
 class Fun(commands.Cog, name="fun"):
+    FACTS = ["İnsan bir yolcudur. Sabavetten gençliğe, gençlikten ihtiyarlığa, ihtiyarlıktan kabre, kabirden haşre, haşirden ebede kadar yolcuğu devam eder.",
+             "Bizler uzun bir seferdeyiz. Buradan kabre, kabirden haşre, haşirden ebed memleketine gitmek üzereyiz.",
+             "Sen burada misafirsin. Ve buradan da diğer bir yere gideceksin. Misafir olan kimse, beraberce getiremediği bir şeye kalbini bağlamaz.",
+             "Bir şeyin şerefi neslinde değildir, zâtındadır. Birşeyin aslını gösteren semeresidir.",
+             "Kıymet ve ehemmiyet, kemiyette ve adet çokluğunda değildir.",
+             "Paslanmış bîhemta bir elmas, dâima mücella cama müreccahtır.",
+             "Birinin âsârı muhakeme olunursa, onun hâssasını nazara almak lazımdır.",
+             "Âlâ bir şey bozulsa, ednâ birşeyin bozulmasından daha bozuk olur.\
+             \nMesela süt ve yoğurt bozulsalar yine yenilebilir. Yağ bozulsa yenilmez, bazan zehir gibi olur. \
+             \nÖyle de mahlukâtın en mükerremi, belki en âlâsı olan insan, eğer bozulsa, bozuk hayvandan daha ziyade bozuk olur.",
+             "İnsan, santral gibi, bütün hilkatın nizamlarına ve fıtratın kânunlarına ve kâinattaki nevâmis-i ilâhiyenin şualarına bir merkezdir.",
+             "Fıtrat ve vicdan akla bir penceredir. Tevhidin şuâını neşrederler.",
+             "Mesmûat, mubsırat, me'kulât âlemlerini ihata eden insandaki duygular, Sâniin sıfat-ı mutlakasını ve geniş şuûnatını fehmetmek içindir."]
     def __init__(self, bot):
         self.bot = bot
+        self.rfb = ""
 
-    @commands.hybrid_command(name="randomfact", description="Get a random fact.")
+    @commands.hybrid_command(name="fact", description="Get a random fact.")
     @checks.not_blacklisted()
-    async def randomfact(self, context: Context) -> None:
+    async def fact(self, context: Context) -> None:
         """
         Get a random fact.
         :param context: The hybrid command context.
         """
         # This will prevent your bot from stopping everything when doing a web request - see: https://discordpy.readthedocs.io/en/stable/faq.html#how-do-i-make-a-web-request
-        async with aiohttp.ClientSession() as session:
-            async with session.get(
-                "https://uselessfacts.jsph.pl/random.json?language=en"
-            ) as request:
-                if request.status == 200:
-                    data = await request.json()
-                    embed = discord.Embed(description=data["text"], color=0xD75BF4)
-                else:
-                    embed = discord.Embed(
-                        title="Error!",
-                        description="There is something wrong with the API, please try again later",
-                        color=0xE02B2B,
-                    )
-                await context.send(embed=embed)
+        #async with aiohttp.ClientSession() as session:
+        #    async with session.get(
+        #        "https://uselessfacts.jsph.pl/random.json?language=en"
+        #    ) as request:
+        #        if request.status == 200:
+        #            data = await request.json()
+        #            embed = discord.Embed(description=data["text"], color=0xD75BF4)
+        #        else:
+        #            embed = discord.Embed(
+        #                title="Error!",
+        #                description="There is something wrong with the API, please try again later",
+        #                color=0xE02B2B,
+        #            )
+        
+        rfc = random.choice(Fun.FACTS)
+        while self.rfb == rfc:
+            rfc = random.choice(Fun.FACTS)
+        random_fact = "```" + rfc + "```"
+        embed = discord.Embed(
+            title= "**Really Excellent Facts**", 
+            description=random_fact, 
+            color=0xD75BF4)
+        await context.send(embed=embed)
+        self.rfb = rfc
 
     @commands.hybrid_command(
         name="coinflip", description="Make a coin flip, but give your bet before."
