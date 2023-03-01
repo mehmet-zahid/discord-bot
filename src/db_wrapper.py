@@ -112,4 +112,16 @@ class MongoManager:
             logger.error(e)
             return e
 
+# import motor.motor_asyncio
+
+#client = motor.motor_asyncio.AsyncIOMotorClient(os.environ.get('MONGODB_PWD'))
+
+#DB_NAME = "discord"
+#COLLECTION_NAME = "beyaz_klavye"
+#TEST_COLLECTION_NAME = "test"
+#db = client[DB_NAME]
+#collection = db[COLLECTION_NAME]
+
+
+
     

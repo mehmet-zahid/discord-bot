@@ -15,4 +15,4 @@ RUN pip install -r requirements.txt
 
 EXPOSE 8443
 
-CMD git pull origin && uvicorn run_bot:app --port 8443 --host 0.0.0.0
+CMD git pull --ff-only origin && python3 bot.py

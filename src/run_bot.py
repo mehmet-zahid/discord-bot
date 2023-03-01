@@ -1,33 +1,50 @@
 import asyncio
 import discord
+from discord import Embed
 from dotenv import load_dotenv
 import os
 from discord.ext import commands
 from fastapi import FastAPI
 from datetime import timedelta, datetime
 from pray import fetch_pray_info, correct_tr, get_pray_info, freetime_info
-# import motor.motor_asyncio
 
+prefix = '/' 
+HELP = [
+    {
+    "command": "help",
+    "parameters": [],
+    "usage": prefix + "help",
+    "example": prefix + "help"
+    },
+    {
+    "command": "freetime",
+    "parameters": ["city_name: str","time_after: int", "duration: float: 1.30 --> hour =1, minutes=30"],
+    "usage": prefix + "freetime <city_name> <time_after> <duration>",
+    "example": prefix + "freetime istanbul 2 1.30"
+    },
+    {
+    "command": "namaz",
+    "parameters": [],
+    "usage": prefix + "namaz",
+    "example": prefix + "namaz"
+    },
+    {
+    "command": "vakit",
+    "parameters": [],
+    "usage": prefix + "vakit",
+    "example": prefix + "vakit"
+    },
+    ]
 
 app = FastAPI()
-
 load_dotenv()
-
 TOKEN = os.environ.get('DISCORD_TOKEN')
-
-#client = motor.motor_asyncio.AsyncIOMotorClient(os.environ.get('MONGODB_PWD'))
-
 intents = discord.Intents.all()
-bot = commands.Bot(command_prefix='!', help_command=None, intents=intents)
-delta = timedelta(minutes=30)
 
+bot = commands.Bot(command_prefix=prefix, help_command=None, intents=intents)
+delta = timedelta(hours=1)
 cache = {}
 
-#DB_NAME = "discord"
-#COLLECTION_NAME = "beyaz_klavye"
-#TEST_COLLECTION_NAME = "test"
-#db = client[DB_NAME]
-#collection = db[COLLECTION_NAME]
 
 async def send_hello_msg(cache: dict, message, delta: timedelta, hello_msg: str):
     try:
@@ -45,12 +62,15 @@ async def send_hello_msg(cache: dict, message, delta: timedelta, hello_msg: str)
         await message.reply(hello_msg, mention_author=False)
         cache[message.author.name]["date_last_message"] = message.created_at
 
+@bot.command()
+async def test(ctx):
+    response = 'This text has some words *emphasized* in _different_ ways'
+    await ctx.send(response)
 
 @bot.event
 async def on_message(message):
     global cache
-    print(message.created_at)
-    msg = message.content.lower()
+    msg: str = message.content.lower()
     cont = msg.split()
     #doc = {"Author": message.author.name,
     #       "Message": msg,
@@ -60,34 +80,33 @@ async def on_message(message):
     #print('result %s' % repr(result.inserted_id))
     
     # Do not reply to self
-    print(message.author.name)
-    print(message.guild)
+    #print(message.author.name)
+    #print(message.guild)
+
     if message.author == bot.user:
         return
-    # Do not reply to any other bot
-    print(message.author.bot)
+
+    # Do not reply to any other bot    
     if message.author.bot:
         return
+       
     if message.author.name == "by.NeOn-B1-66-er":
-        await send_hello_msg(cache=cache, message=message, delta=delta, hello_msg="Hoşgeldiniz Ahmet Bey")
+        await send_hello_msg(cache=cache, message=message, delta=delta, hello_msg="Hoşgeldiniz Ahmet Bey, sohbetin tadını çıkarın efendim.")
     if message.author.name == "Muhammed_Samil_Albayrak":
         await send_hello_msg(cache=cache, message=message, delta=delta, hello_msg="Şamil Bey Hoşgeldiniz")
     if message.author.name == "mutex":
         await send_hello_msg(cache=cache, message=message, delta=delta, hello_msg="Hoşgeldiniz Mutex")
     if message.author.name == "Mehmet Zahid IŞIK":
-        #await message.reply("Your messages will be deleted Mehmet Zahid, Sorry :)", mention_author=False)
+        #await message.author.send("Merhaba, bu bir dm mesajı ve botunuz tarafından gönderildi efendim.")
         await send_hello_msg(cache=cache, message=message, delta=delta, hello_msg="Hello Mehmet Zahid")
         #await message.delete(delay=3.2)
     if message.author.name == "süleyman mercan":
-        await send_hello_msg(cache=cache, message=message, delta=delta, hello_msg="Hoşgeldin Süleyman")
-    print(cache)
-    # get the message content
-    
-    print(msg)
-    print(msg.split())
-    # reply to the ping message
+        await send_hello_msg(cache=cache, message=message, delta=delta, hello_msg="Hoşgeldiniz Beyefendi")
+
+    if msg.startswith(prefix):
+        command = msg[len(prefix):]
     if "/ping" in msg and len(msg) == 5:
-        await message.reply(message.author, mention_author=False)
+        await message.reply(message.author, mention_author=True)
 
     if "/ask" in msg:
         await message.reply("this will be implemented...", mention_author=False)
@@ -131,7 +150,9 @@ async def on_message(message):
             print(city)
             try:
                 response = fetch_pray_info(city=city)
-                await message.reply(response, mention_author=False)
+                embed = Embed.from_dict(response)
+                await message.channel.send(embed=embed)
+                #await message.reply(response, mention_author=False)
             except Exception as e:
                 await message.reply(e, mention_author=False)
         else:
@@ -153,6 +174,8 @@ async def on_message(message):
 @bot.event
 async def on_member_join(member):
     await message.reply(f"Hoşgeldin {member.name}")
+
+
     
 @app.get("/")
 def main():

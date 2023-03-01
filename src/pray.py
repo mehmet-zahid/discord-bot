@@ -30,7 +30,8 @@ else:
 host = "https://namaz-vakti.vercel.app"
 endpoint = "/api/timesFromPlace?country=Turkey&region={0}&city={0}&date={1}&days=3&timezoneOffset=180"
 
-
+PRAYERS_EN = ["Fajr", "Tulu", "Zuhr", "Asr", "Maghrib", "Isha"]
+BISMILLAH = '\u0628\u0650\u0633\u0652\u0645\u0650\u0020\u0627\u0644\u0644\u0651\u064e\u0647\u0650\u0020\u0627\u0644\u0631\u0651\u064e\u062d\u0652\u0645\u064e\u0627\u0646\u0650\u0020\u0627\u0644\u0631\u0651\u064e\u062d\u0650\u064a\u0645\u0650'
 def fetch_pray_info(city: str):
     yesterday = (date.today() + timedelta(days=-1)).strftime("%Y-%m-%d")
     today = date.today().strftime("%Y-%m-%d")
@@ -93,6 +94,11 @@ def url_encode(data: dict):
 
 def correct_tr(string):
     return string.translate(tr_table)
+
+def set_global_view(vakts: dict):
+    return dict(map(lambda x: (x[0].capitalize() + '-' + '('+ x[1] + ')', vakts[x[0]]), zip(vakts.keys(), PRAYERS_EN)))
+   
+
     
 def calc_remaining_time(city):
     current_time = datetime.now()  # returns datetime object
@@ -118,13 +124,6 @@ def convert_to_datetime(time_str, day_offset=None, date_string=None):
     
     return datetime_obj
 
-
-namazlar = {"imsak" :  "06:26",
-            "gunes" :  "07:52",
-            "ogle" :   "13:24",
-            "ikindi" : "16:17",
-            "aksam" :  "18:46",
-            "yatsi" :  "20:06"}
 
 
 def get_pray_info(vakts: dict, as_str=False, time_offset=None) -> dict:
