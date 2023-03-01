@@ -1,6 +1,5 @@
 {
     "prefix": "/",
-    "token": "",
     "permissions": "8",
     "application_id": "1075077480131600426",
     "sync_commands_globally": false,

@@ -12,7 +12,7 @@ import os
 import platform
 import random
 import sys
-
+from dotenv import load_dotenv
 import aiosqlite
 import discord
 from discord.ext import commands, tasks
@@ -24,6 +24,9 @@ if not os.path.exists(os.path.join(os.path.dirname(__file__), "config.json")):
 else:
     with open("config.json") as f:
         config = json.load(f)
+
+load_dotenv()
+TOKEN = os.environ.get('DISCORD_TOKEN')
 
 """	
 Setup bot intents (events restrictions)
@@ -292,4 +295,4 @@ async def load_cogs() -> None:
 
 asyncio.run(init_db())
 asyncio.run(load_cogs())
-bot.run(config["token"])
+bot.run(TOKEN)
