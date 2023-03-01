@@ -4,7 +4,7 @@ from discord.ext import commands
 from discord.ext.commands import Context
 
 from helpers import checks
-from pray import fetch_pray_info, set_global_view, BISMILLAH
+from pray import fetch_pray_info, get_pray_info, set_global_view, BISMILLAH
 
 
 # Here we name the cog and create a new class for the cog.
@@ -27,6 +27,7 @@ class Pray(commands.Cog, name="namaz"):
         :param context: The application command context.
         """
         pray_info = fetch_pray_info(city)
+        response = get_pray_info(pray_info)
         embed = discord.Embed(
             title=f'{BISMILLAH}\n**Namaz Vakitleri**',
             description='*Bugün için namaz vakitleri*',
@@ -35,6 +36,12 @@ class Pray(commands.Cog, name="namaz"):
         embed.set_footer(text=pray_info['today']['date'])
         for k, v in set_global_view(pray_info['today']['prays']).items():
             embed.add_field(name=k, value=f"```{v}```", inline=False)
+        embed.add_field(name="Vakt_i Hâl", value=f"```{response.get('CurrentPrayer').capitalize()}```")
+        embed.add_field(name="Mukaddem Vakit", value=f"```{response.get('NextPrayerTime').capitalize()}```")
+        hours = response.get('TimeLeft').seconds // 3600
+        minutes = (response.get('TimeLeft').seconds // 60) % 60
+        embed.add_field(name="Bâkiye_i zaman", 
+                        value=f"```{hours} saat, {minutes} dakika```")
 
         await context.send(embed=embed)
 

@@ -144,49 +144,49 @@ def get_pray_info(vakts: dict, as_str=False, time_offset=None) -> dict:
     response = {"Date": str(date.today()) if as_str else date.today(),
                 "CurrentTime": time_offset.strftime('%H:%M') if as_str else time_offset,
                 "CurrentPrayer": None ,
-                "RemainingTimeToNextPray": None,
+                "TimeLeft": None,
                 "NextPrayerTime": None,
             }
     if buff['today']['prays']['imsak'] <= time_offset < buff['today']['prays']['gunes']:
         response["CurrentPrayer"] = "sabah namaz vakti"
         response["NextPrayerTime"] = "ogle"
-        response["RemainingTimeToNextPray"] = buff['today']['prays']['ogle'] - time_offset
+        response["TimeLeft"] = buff['today']['prays']['ogle'] - time_offset
 
     elif buff['today']['prays']['gunes'] <= time_offset < buff['today']['prays']['ogle']:
         response["CurrentPrayer"] = "kusluk vakti"
         response["NextPrayerTime"] = "ogle"
-        response["RemainingTimeToNextPray"] = buff['today']['prays']['ogle'] - time_offset
+        response["TimeLeft"] = buff['today']['prays']['ogle'] - time_offset
 
     elif buff['today']['prays']['ogle'] <= time_offset < buff['today']['prays']['ikindi']:
         response["CurrentPrayer"] = "ogle namaz vakti"
         response["NextPrayerTime"] = "ikindi"
-        response["RemainingTimeToNextPray"] = buff['today']['prays']['ikindi'] - time_offset
+        response["TimeLeft"] = buff['today']['prays']['ikindi'] - time_offset
 
     elif buff['today']['prays']['ikindi'] <= time_offset < buff['today']['prays']['aksam']:
         response["CurrentPrayer"] = "ikindi namaz vakti"
         response["NextPrayerTime"] = "aksam"
-        response["RemainingTimeToNextPray"] = buff['today']['prays']['aksam'] - time_offset
+        response["TimeLeft"] = buff['today']['prays']['aksam'] - time_offset
 
     elif buff['today']['prays']['aksam'] <= time_offset < buff['today']['prays']['yatsi']:
         response["CurrentPrayer"] = "aksam namaz vakti"
         response["NextPrayerTime"] = "yatsi"
-        response["RemainingTimeToNextPray"] = buff['today']['prays']['yatsi'] - time_offset
+        response["TimeLeft"] = buff['today']['prays']['yatsi'] - time_offset
 
     elif buff['today']['prays']['yatsi'] <= time_offset < buff['tomorrow']['prays']['imsak']:
         response["CurrentPrayer"] = "yatsi namaz vakti"
         response["NextPrayerTime"] = "imsak"
-        response["RemainingTimeToNextPray"] = buff['tomorrow']['prays']['imsak'] - time_offset
+        response["TimeLeft"] = buff['tomorrow']['prays']['imsak'] - time_offset
 
     elif buff['yesterday']['prays']['yatsi'] <= time_offset < buff['today']['prays']['imsak']:
         response["CurrentPrayer"] = "yatsi namaz vakti"
         response["NextPrayerTime"] = "imsak"
-        response["RemainingTimeToNextPray"] = buff['today']['prays']['imsak'] - time_offset
+        response["TimeLeft"] = buff['today']['prays']['imsak'] - time_offset
     else:
         print("Error")
     
     
-    str_time_left = str(response["RemainingTimeToNextPray"])
-    response["RemainingTimeToNextPray"] = str_time_left if as_str else response["RemainingTimeToNextPray"]
+    str_time_left = str(response["TimeLeft"])
+    response["TimeLeft"] = str_time_left if as_str else response["TimeLeft"]
 
     
     return response
@@ -200,12 +200,12 @@ def freetime_info(city: str, time_after: int, duration: tuple[int, int]):
     recommend = []
     if response["CurrentPrayer"] == "ikindi":
         recommend.append("you will be ikindi pray time at your meeting start time")
-        recommend.append(f"Time Left to aksam pray time after the end of the meeting --> {response['RemainingTimeToNextPray']}")
-        if response["RemainingTimeToNextPray"] < timedelta(minutes=45):
+        recommend.append(f"Time Left to aksam pray time after the end of the meeting --> {response['TimeLeft']}")
+        if response["TimeLeft"] < timedelta(minutes=45):
             recommend.append("if you perform the meeting at that time, you will be in the kerahat time after the end of the meeting!")
-            recom_meet_dur = meeting_duration - response["RemainingTimeToNextPray"]
+            recom_meet_dur = meeting_duration - response["TimeLeft"]
             recommend.append(f"Recommended meeting duration --> {recom_meet_dur}")
-    elif response["RemainingTimeToNextPray"] < timedelta(minutes=30):
+    elif response["TimeLeft"] < timedelta(minutes=30):
         recommend.append("Take care of remaining time to next pray ! less than 30 minutes!")
 
     else:
@@ -216,7 +216,7 @@ def freetime_info(city: str, time_after: int, duration: tuple[int, int]):
             "MeetingDuration": str(meeting_duration),
             "TimeOffset": response["CurrentTime"].strftime('%H:%M'),
             "PrayerTimeTagOnMeetingTime": response["CurrentPrayer"],
-            "RemainingTimeToNextPray": str(response["RemainingTimeToNextPray"]),
+            "TimeLeft": str(response["TimeLeft"]),
             "NextPrayerTime": response["NextPrayerTime"],
             "Recommendations": recommend}
 

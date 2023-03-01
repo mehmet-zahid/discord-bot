@@ -45,7 +45,6 @@ bot = commands.Bot(command_prefix=prefix, help_command=None, intents=intents)
 delta = timedelta(hours=1)
 cache = {}
 
-
 async def send_hello_msg(cache: dict, message, delta: timedelta, hello_msg: str):
     try:
         member_name = cache[message.author.name]
