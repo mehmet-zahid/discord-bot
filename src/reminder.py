@@ -6,9 +6,7 @@ import datetime
 from zoneinfo import ZoneInfo
 from helpers import db_manager
 import random
-import locale
 
-locale.setlocale(locale.LC_ALL, 'tr_TR')
 
 zone = ZoneInfo("Turkey")
 # Here we name the cog and create a new class for the cog.
