@@ -27,7 +27,6 @@ class Openai(commands.Cog, name="openai"):
     # This will only allow non-blacklisted members to execute the command
     @checks.not_blacklisted()
     # This will only allow owners of the bot to execute the command -> config.json
-    @checks.is_owner()
     async def gpt(self, context: Context, prompt: str):
         """
         This is a testing command that does nothing.

@@ -48,16 +48,7 @@ class MySource(menus.ListPageSource):
         offset = menu.current_page * self.per_page
         return '\n'.join(f'{i}. {v}' for i, v in enumerate(entries, start=offset))
 
-class Test:
-    def __init__(self, key, value):
-        self.key = key
-        self.value = value
 
-data = [
-    Test(key=key, value=value)
-    for key in ['test', 'other', 'okay']
-    for value in range(20)
-]
 
 class Source(menus.GroupByPageSource):
     async def format_page(self, menu, entry):
