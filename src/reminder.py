@@ -6,6 +6,9 @@ import datetime
 from zoneinfo import ZoneInfo
 from helpers import db_manager
 import random
+import locale
+
+locale.setlocale(locale.LC_ALL, 'tr_TR')
 
 zone = ZoneInfo("Turkey")
 # Here we name the cog and create a new class for the cog.
@@ -56,7 +59,7 @@ class Reminder:
                 user = self.bot.get_user(int(uid[0]))
                 embed = discord.Embed(
                     title="*Hatırlatma Mesajı*",
-                    description=f"{user.mention} ,\n{formatted_date} tarihinde saat 12.00 için planlanmış olan C++ dersini hatırlatırım, Saygılarımla.",
+                    description=f"{user.mention} ,\n{formatted_date} Pazar günü saat 12.00 için planlanmış olan C++ dersini hatırlatırım, Saygılarımla.",
                     color=0x9C84EF
                     )
                 await user.send(embed=embed)
