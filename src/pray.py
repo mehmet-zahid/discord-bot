@@ -148,38 +148,48 @@ def get_pray_info(vakts: dict, as_str=False, time_offset=None) -> dict:
                 "NextPrayerTime": None,
             }
     if buff['today']['prays']['imsak'] <= time_offset < buff['today']['prays']['gunes']:
-        response["CurrentPrayer"] = "sabah namaz vakti"
-        response["NextPrayerTime"] = "ogle"
+        response["CurrentPrayer"] = "Sabah Vakti"
+        response["NextPrayerTime"] = "Ogle"
+        response["TimeLeft"] = buff['today']['prays']['ogle'] - time_offset
+    
+    elif buff['today']['prays']['gunes'] < time_offset <= buff['today']['prays']['gunes'] + timedelta(minutes=50):
+        response["CurrentPrayer"] = "Kerahat Vakti"
+        response["NextPrayerTime"] = "Ogle"
         response["TimeLeft"] = buff['today']['prays']['ogle'] - time_offset
 
-    elif buff['today']['prays']['gunes'] <= time_offset < buff['today']['prays']['ogle']:
-        response["CurrentPrayer"] = "kusluk vakti"
-        response["NextPrayerTime"] = "ogle"
+    elif buff['today']['prays']['gunes'] + timedelta(minutes=50) <= time_offset < buff['today']['prays']['ogle'] - timedelta(minutes=50):
+        response["CurrentPrayer"] = "İşrak Vakti"
+        response["NextPrayerTime"] = "Ogle"
+        response["TimeLeft"] = buff['today']['prays']['ogle'] - time_offset
+    
+    elif buff['today']['prays']['ogle'] - timedelta(minutes=50) <= time_offset < buff['today']['prays']['ogle']:
+        response["CurrentPrayer"] = "Dahve-i Kubra"
+        response["NextPrayerTime"] = "Ogle"
         response["TimeLeft"] = buff['today']['prays']['ogle'] - time_offset
 
     elif buff['today']['prays']['ogle'] <= time_offset < buff['today']['prays']['ikindi']:
-        response["CurrentPrayer"] = "ogle namaz vakti"
-        response["NextPrayerTime"] = "ikindi"
+        response["CurrentPrayer"] = "Ogle Vakti"
+        response["NextPrayerTime"] = "İkindi"
         response["TimeLeft"] = buff['today']['prays']['ikindi'] - time_offset
 
     elif buff['today']['prays']['ikindi'] <= time_offset < buff['today']['prays']['aksam']:
-        response["CurrentPrayer"] = "ikindi namaz vakti"
-        response["NextPrayerTime"] = "aksam"
+        response["CurrentPrayer"] = "İkindi Vakti"
+        response["NextPrayerTime"] = "Aksam"
         response["TimeLeft"] = buff['today']['prays']['aksam'] - time_offset
 
     elif buff['today']['prays']['aksam'] <= time_offset < buff['today']['prays']['yatsi']:
-        response["CurrentPrayer"] = "aksam namaz vakti"
-        response["NextPrayerTime"] = "yatsi"
+        response["CurrentPrayer"] = "Aksam Vakti"
+        response["NextPrayerTime"] = "Yatsi"
         response["TimeLeft"] = buff['today']['prays']['yatsi'] - time_offset
 
     elif buff['today']['prays']['yatsi'] <= time_offset < buff['tomorrow']['prays']['imsak']:
-        response["CurrentPrayer"] = "yatsi namaz vakti"
-        response["NextPrayerTime"] = "imsak"
+        response["CurrentPrayer"] = "Yatsi Vakti"
+        response["NextPrayerTime"] = "İmsak"
         response["TimeLeft"] = buff['tomorrow']['prays']['imsak'] - time_offset
 
     elif buff['yesterday']['prays']['yatsi'] <= time_offset < buff['today']['prays']['imsak']:
-        response["CurrentPrayer"] = "yatsi namaz vakti"
-        response["NextPrayerTime"] = "imsak"
+        response["CurrentPrayer"] = "Yatsi Vakti"
+        response["NextPrayerTime"] = "İmsak"
         response["TimeLeft"] = buff['today']['prays']['imsak'] - time_offset
     else:
         print("Error")

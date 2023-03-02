@@ -5,12 +5,60 @@ import aiosqlite
 DATABASE_PATH = f"{os.path.realpath(os.path.dirname(__file__))}/../database/database.db"
 
 
+async def get_notifiers() -> list:
+    """
+    This function returns a list of notifiers.
+    """
+    async with aiosqlite.connect(DATABASE_PATH) as db:
+        async with db.execute("SELECT user_id FROM notifiers") as cursor:
+            result = await cursor.fetchall()
+            return result
+
+async def is_notifier(user_id: int) -> bool:
+    """
+    This function will check if a user is a notifier.
+
+    :param user_id: The ID of the user that should be checked.
+    :return: True if the user is notifier, False if not.
+    """
+    async with aiosqlite.connect(DATABASE_PATH) as db:
+        async with db.execute("SELECT * FROM notifiers WHERE user_id=?", (user_id,)) as cursor:
+            result = await cursor.fetchone()
+            return result is not None
+
+async def add_user_to_notifiers(user_id: int) -> int:
+    """
+    This function will add a user based on its ID in the notifiers.
+
+    :param user_id: The ID of the user that should be added into the notifiers.
+    """
+    async with aiosqlite.connect(DATABASE_PATH) as db:
+        await db.execute("INSERT INTO notifiers(user_id) VALUES (?)", (user_id,))
+        await db.commit()
+        rows = await db.execute("SELECT COUNT(*) FROM notifiers")
+        async with rows as cursor:
+            result = await cursor.fetchone()
+            return result[0] if result is not None else 0
+
+
+async def remove_user_from_notifiers(user_id: int) -> int:
+    """
+    This function will remove a user based on its ID from the notifiers.
+
+    :param user_id: The ID of the user that should be removed from the notifiers.
+    """
+    async with aiosqlite.connect(DATABASE_PATH) as db:
+        await db.execute("DELETE FROM notifiers WHERE user_id=?", (user_id,))
+        await db.commit()
+        rows = await db.execute("SELECT COUNT(*) FROM notifiers")
+        async with rows as cursor:
+            result = await cursor.fetchone()
+            return result[0] if result is not None else 0
+
+
 async def get_blacklisted_users() -> list:
     """
     This function will return the list of all blacklisted users.
-
-    :param user_id: The ID of the user that should be checked.
-    :return: True if the user is blacklisted, False if not.
     """
     async with aiosqlite.connect(DATABASE_PATH) as db:
         async with db.execute(
@@ -149,3 +197,4 @@ async def get_warnings(user_id: int, server_id: int) -> list:
             for row in result:
                 result_list.append(row)
             return result_list
+

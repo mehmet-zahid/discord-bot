@@ -322,6 +322,120 @@ class Owner(commands.Cog, name="owner"):
         )
         await context.send(embed=embed)
 
+    @commands.hybrid_group(
+        name="notify",
+        description="Get the list of all notifiers.",
+    )
+    @checks.is_owner()
+    async def notify(self, context: Context) -> None:
+        """
+        Lets you add, remove a user from reminder list or show notifiers.
+
+        :param context: The hybrid command context.
+        """
+        if context.invoked_subcommand is None:
+            embed = discord.Embed(
+                description="You need to specify a subcommand.\n\n**Subcommands:**\n`add` - Add a user to the notifier list.\
+                    \n`remove` - Remove a user from the notifier list.\n`show` - Show the list of all notifiers.",
+                color=0xE02B2B,
+            )
+            await context.send(embed=embed)
+
+    @notify.command(
+        base="notify",
+        name="add",
+        description="Lets you add a user to notifiers list.",
+    )
+    @app_commands.describe(user="The user that should be add to notifiers list.")
+    @checks.is_owner()
+    async def notify_add(self, context: Context, user: discord.User) -> None:
+        """
+        Lets you add a user notifiers list.
+
+        :param context: The hybrid command context.
+        :param user: The user that should be add to notifiers list.
+        """
+        user_id = user.id
+        if await db_manager.is_notifier(user_id):
+            embed = discord.Embed(
+                description=f"**{user.name}** is already in the notifier list.",
+                color=0xE02B2B,
+            )
+            await context.send(embed=embed)
+            return
+        total = await db_manager.add_user_to_notifiers(user_id)
+        embed = discord.Embed(
+            description=f"**{user.name}** has been successfully added to the notifiers list",
+            color=0x9C84EF,
+        )
+        embed.set_footer(
+            text=f"There {'is' if total == 1 else 'are'} now {total} {'user' if total == 1 else 'users'} in the notifiers list."
+        )
+        await context.send(embed=embed)
+
+    
+    @notify.command(
+        base="notify",
+        name="remove",
+        description="Lets you remove a user to notifiers list.",
+    )
+    @app_commands.describe(user="The user that should be remove from the notifiers list.")
+    @checks.is_owner()
+    async def notify_remove(self, context: Context, user: discord.User) -> None:
+        """
+        Lets you remove a user from the notifiers list.
+
+        :param context: The hybrid command context.
+        :param user: The user that should be remove from the notifiers list.
+        """
+        user_id = user.id
+        if not await db_manager.is_notifier(user_id):
+            embed = discord.Embed(
+                description=f"**{user.name}** is not in the notifiers list.", color=0xE02B2B
+            )
+            await context.send(embed=embed)
+            return
+        total = await db_manager.remove_user_from_notifiers(user_id)
+        embed = discord.Embed(
+            description=f"**{user.name}** has been successfully removed from the notifiers list.",
+            color=0x9C84EF,
+        )
+        embed.set_footer(
+            text=f"There {'is' if total == 1 else 'are'} now {total} {'user' if total == 1 else 'users'} in the notifiers list."
+        )
+        await context.send(embed=embed)
+
+    @notify.command(
+        base="notify",
+        name="show",
+        description="Lets you show  notifiers list.",
+    )
+    @checks.is_owner()
+    async def notify_show(self, context: Context) -> None:
+        """
+        Shows the notifiers list.
+
+        :param context: The hybrid command context.
+        """
+        notifier_users = await db_manager.get_notifiers()
+        
+        if len(notifier_users) == 0:
+            embed = discord.Embed(
+                description="There are currently no notifier users.", color=0xE02B2B
+            )
+            await context.send(embed=embed)
+            return
+
+        embed = discord.Embed(title="Users To Be Notificated", color=0x9C84EF)
+        users = []
+        for uid in notifier_users:
+            user = self.bot.get_user(int(uid[0])) or await self.bot.fetch_user(int(uid[0]))
+            users.append(f"{user.mention} ({user})")
+        embed.description = "\n".join(users)
+        await context.send(embed=embed)
+
+
+
 
 async def setup(bot):
     await bot.add_cog(Owner(bot))

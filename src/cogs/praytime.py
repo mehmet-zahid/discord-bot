@@ -29,8 +29,8 @@ class Pray(commands.Cog, name="namaz"):
         pray_info = fetch_pray_info(city)
         response = get_pray_info(pray_info)
         embed = discord.Embed(
-            title=f'{BISMILLAH}\n**Namaz Vakitleri**',
-            description='*Bugün için namaz vakitleri*',
+            title=f'{BISMILLAH}\n**Vakitler**',
+            description='*Bugün için vakitler*',
             color=discord.Colour.dark_orange()
         )
         embed.set_footer(text=pray_info['today']['date'])
@@ -40,7 +40,7 @@ class Pray(commands.Cog, name="namaz"):
         embed.add_field(name="Mukaddem Vakit", value=f"```{response.get('NextPrayerTime').capitalize()}```")
         hours = response.get('TimeLeft').seconds // 3600
         minutes = (response.get('TimeLeft').seconds // 60) % 60
-        embed.add_field(name="Bâkiye_i zaman", 
+        embed.add_field(name="Bakiye_i zaman", 
                         value=f"```{hours} saat, {minutes} dakika```")
 
         await context.send(embed=embed)

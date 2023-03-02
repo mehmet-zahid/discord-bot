@@ -2,6 +2,7 @@ discord.py
 aiohttp
 aiosqlite
 requests
+openai
 tzdata
 fastapi
 pymongo

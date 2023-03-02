@@ -10,7 +10,6 @@ import json
 import logging
 import os
 import platform
-import random
 import sys
 from dotenv import load_dotenv
 import aiosqlite
@@ -18,6 +17,8 @@ import discord
 from discord.ext import commands, tasks
 from discord.ext.commands import Bot, Context
 import exceptions
+from reminder import Reminder
+
 
 if not os.path.exists(os.path.join(os.path.dirname(__file__), "config.json")):
     sys.exit("'config.json' not found! Please add it and try again.")
@@ -65,6 +66,8 @@ bot = Bot(
     intents=intents,
     help_command=None,
 )
+
+
 
 class LoggingFormatter(logging.Formatter):
     # Colors
@@ -138,18 +141,14 @@ async def on_ready() -> None:
     bot.logger.info(f"Python version: {platform.python_version()}")
     bot.logger.info(f"Running on: {platform.system()} {platform.release()} ({os.name})")
     bot.logger.info("-------------------")
-    status_task.start()
+    # Initialize all tasks
+    Reminder(bot)
+    #remind_lesson.start()
+    #status_task.start()
     if config["sync_commands_globally"]:
         bot.logger.info("Syncing commands globally...")
         await bot.tree.sync()
 
-@tasks.loop(minutes=1.0)
-async def status_task() -> None:
-    """
-    Setup the game status task of the bot.
-    """
-    statuses = ["with good people!", "with Mutex!", "with Şamil!", "with Suleyman"]
-    await bot.change_presence(activity=discord.Game(random.choice(statuses)))
 
 @bot.event
 async def on_message(message: discord.Message) -> None:
