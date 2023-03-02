@@ -32,7 +32,7 @@ class Reminder:
 
     @tasks.loop(time=TIMES)
     async def sunday(self):
-        now = datetime.datetime.now()
+        now = datetime.datetime.now(tz=zone)
         
         if self.get_sunday_dt(Reminder.TIMES[0]) <= now >= self.get_sunday_dt(Reminder.TIMES[1]):
             user_ids = await db_manager.get_notifiers()
