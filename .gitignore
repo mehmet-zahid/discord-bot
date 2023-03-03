@@ -1,4 +1,4 @@
-.env
+dev.env
 __pycache__
 venv
 *.log
