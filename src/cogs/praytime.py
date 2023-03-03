@@ -4,7 +4,7 @@ from discord.ext import commands
 from discord.ext.commands import Context
 
 from helpers import checks
-from pray import fetch_pray_info, get_pray_info, set_global_view, BISMILLAH
+from pray import fetch_pray_info, get_pray_info, set_global_view, correct_tr, BISMILLAH
 
 
 # Here we name the cog and create a new class for the cog.
@@ -26,6 +26,7 @@ class Pray(commands.Cog, name="namaz"):
 
         :param context: The application command context.
         """
+        city = correct_tr(city).lower()
         pray_info = fetch_pray_info(city)
         response = get_pray_info(pray_info)
         embed = discord.Embed(
