@@ -4,9 +4,8 @@ services:
 
   discordbot:
     container_name: discordbot
-    build:
-      context: ./src
-      dockerfile: Dockerfile
+    build: .
+    image: discordbot
     environment:
       - TZ=Turkey
     env_file:
