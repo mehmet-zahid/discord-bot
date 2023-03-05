@@ -10,7 +10,7 @@ services:
     environment:
       - TZ=Turkey
     env_file:
-      - build.env
+      - .env.build
     ports:
       - 8443:8443
     stdin_open: true
