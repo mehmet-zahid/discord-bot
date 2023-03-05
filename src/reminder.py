@@ -18,7 +18,7 @@ class Reminder:
     def __init__(self, bot: Bot):
         self.bot = bot
         self.remind_lesson.start()
-        self.status_task.start()
+        #self.status_task.start()
         self.sunday.start()
         
 
@@ -26,18 +26,19 @@ class Reminder:
         today = datetime.date.today()
         sunday = today + datetime.timedelta(days=(6-today.weekday()))
         if tm is None:
-            return sunday
+            return sunday.weekday()
 
-        return datetime.datetime.combine(sunday, tm)
+        return datetime.datetime.combine(sunday, tm, tzinfo=zone)
         
 
     @tasks.loop(time=TIMES)
     async def sunday(self):
         now = datetime.datetime.now(tz=zone)
         
-        if self.get_sunday_dt(Reminder.TIMES[0]) <= now >= self.get_sunday_dt(Reminder.TIMES[1]):
+        
+        if self.get_sunday_dt() == now.weekday() :
             user_ids = await db_manager.get_notifiers()
-            async for uid in user_ids:
+            for uid in user_ids:
                 user = self.bot.get_user(int(uid[0]))
                 
                 embed = discord.Embed(
@@ -57,7 +58,8 @@ class Reminder:
                 user = self.bot.get_user(int(uid[0]))
                 embed = discord.Embed(
                     title="*Hatırlatma Mesajı*",
-                    description=f"{user.mention} ,\n{formatted_date} Pazar günü saat 12.00 için planlanmış olan C++ dersini hatırlatırım, Saygılarımla.",
+                    description=f"{user.mention} ,\n{formatted_date} Pazar günü saat 12.00 için planlanmış olan C++ dersini hatırlatırım ve de\
+                         C++ için vakit ayırmayı ihmal etmeyiniz, Saygılarımla.",
                     color=0x9C84EF
                     )
                 await user.send(embed=embed)
