@@ -4,15 +4,9 @@ ENV PIP_DISABLE_PIP_VERSION_CHECK 1
 ENV PYTHONDONTWRITEBYTECODE 1
 ENV PYTHONUNBUFFERED 1
 
-WORKDIR /home
-
+COPY src /home/src
 RUN apt update -y && apt install -y git
-RUN git clone https://github.com/mehmet-zahid/discord-bot.git
-
-WORKDIR /home/discord-bot/src
-
+WORKDIR /home/src
 RUN pip install -r requirements.txt
-
 EXPOSE 8443
-
-CMD git pull --ff-only origin && python3 bot.py
+CMD python3 bot.py
