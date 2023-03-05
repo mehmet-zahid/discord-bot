@@ -9,8 +9,6 @@ services:
       dockerfile: Dockerfile
     environment:
       - TZ=Turkey
-    env_file:
-      - .env.build
     ports:
       - 8443:8443
     stdin_open: true
